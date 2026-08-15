@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Producción, ventas y empleo - Industria manufacturera</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;background:#f0f0f0;min-height:100vh;padding:16px}
+.card{background:#fff;border-radius:14px;max-width:640px;margin:0 auto;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.1)}
+.header{background:#c8102e;padding:20px 24px 18px}
+.header h1{color:#fff;font-size:17px;font-weight:700;line-height:1.3;margin-bottom:3px}
+.header p{color:rgba(255,255,255,.75);font-size:12px;line-height:1.4}
+.body{padding:20px 24px 24px}
+
+.viewtabs{display:flex;background:#111;border-radius:10px;padding:4px;margin-bottom:18px;gap:4px}
+.vtab{flex:1;border:none;background:transparent;padding:11px 8px;font-size:12.5px;font-weight:700;font-family:'Inter',sans-serif;color:#999;border-radius:7px;cursor:pointer;transition:.15s}
+.vtab.active{background:#c8102e;color:#fff}
+
+.metric-tabs{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px}
+.mtab{border:2px solid #e8e8e8;background:#fafafa;border-radius:10px;padding:12px 10px;cursor:pointer;text-align:center;transition:.15s}
+.mtab .mname{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:#888;margin-bottom:4px}
+.mtab .mtotal{font-size:19px;font-weight:700;color:#555}
+.mtab.active{border-color:transparent}
+.mtab.active[data-metric="prod"]{background:#fde8ee;}
+.mtab.active[data-metric="prod"] .mname{color:#a8285a}
+.mtab.active[data-metric="prod"] .mtotal{color:#d6336c}
+.mtab.active[data-metric="vent"]{background:#e7f0f8;}
+.mtab.active[data-metric="vent"] .mname{color:#1c5480}
+.mtab.active[data-metric="vent"] .mtotal{color:#2b6fae}
+.mtab.active[data-metric="pers"]{background:#eef6df;}
+.mtab.active[data-metric="pers"] .mname{color:#4c7a0f}
+.mtab.active[data-metric="pers"] .mtotal{color:#74b816}
+
+.controls{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+.search{flex:1;min-width:160px;border:2px solid #e0e0e0;border-radius:8px;padding:10px 12px;font-size:13px;font-family:'Inter',sans-serif;color:#111;outline:none;transition:border-color .15s}
+.search:focus{border-color:#c8102e}
+.orderbtn{border:2px solid #e0e0e0;background:#fff;border-radius:8px;padding:9px 14px;font-size:12px;font-weight:600;font-family:'Inter',sans-serif;color:#555;cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:6px}
+.orderbtn:hover{border-color:#c8102e;color:#c8102e}
+
+.subtitle{font-size:12px;color:#999;margin-bottom:10px}
+.subtitle b{color:#555}
+
+.tablewrap{border:1px solid #ececec;border-radius:8px;overflow:hidden}
+.rows{max-height:520px;overflow-y:auto}
+.row{display:grid;grid-template-columns:1fr 110px;align-items:center;border-bottom:1px solid #f2f2f2;font-size:13px;transition:background .1s}
+.row:last-child{border-bottom:none}
+.row:hover{background:#fafafa}
+.row.hidden{display:none}
+.cell-desc{padding:11px 12px;color:#222;line-height:1.3}
+.cell-desc .clase{display:block;font-size:10px;color:#aaa;font-weight:600;margin-bottom:1px}
+.cell-val{padding:11px 12px 11px 0}
+.valwrap{display:flex;flex-direction:column;align-items:flex-end;gap:5px}
+.valnum{font-size:14px;font-weight:700;font-variant-numeric:tabular-nums}
+.valnum.pos{color:#2f9e44}
+.valnum.neg{color:#c8102e}
+.barbg{width:100%;height:6px;background:#f0f0f0;border-radius:3px;overflow:hidden;position:relative}
+.barfill{position:absolute;top:0;bottom:0;border-radius:3px}
+
+.info-ref{font-size:11px;color:#bbb;line-height:1.6;padding-top:14px;margin-top:14px;border-top:1px solid #f0f0f0}
+.noresults{display:none;text-align:center;padding:24px 10px;font-size:13px;color:#999}
+.noresults.show{display:block}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="header">
+    <h1 id="titleMain">Producción, ventas y empleo por actividad manufacturera</h1>
+    <p>Encuesta Mensual Manufacturera con Enfoque Territorial (EMMET) · Junio 2026/2025 · DANE</p>
+  </div>
+  <div class="body">
+
+    <div class="viewtabs">
+      <button class="vtab" id="vtabActividades" onclick="setView('actividades')">Actividades manufactureras</button>
+      <button class="vtab" id="vtabDepartamentos" onclick="setView('departamentos')">Departamentos</button>
+    </div>
+
+    <div class="metric-tabs">
+      <div class="mtab" data-metric="prod" onclick="setMetric('prod')">
+        <div class="mname">Producción</div>
+        <div class="mtotal">+4,1 %</div>
+      </div>
+      <div class="mtab" data-metric="vent" onclick="setMetric('vent')">
+        <div class="mname">Ventas</div>
+        <div class="mtotal">+3,9 %</div>
+      </div>
+      <div class="mtab" data-metric="pers" onclick="setMetric('pers')">
+        <div class="mname">Empleo</div>
+        <div class="mtotal">-1,1 %</div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <input class="search" id="search" type="text" placeholder="Buscar...">
+      <button class="orderbtn" id="orderbtn" onclick="toggleOrder()">Mayor a menor <span id="orderArrow">▼</span></button>
+    </div>
+
+    <div class="subtitle">Variación anual de <b id="subtitleMetric">producción real</b> respecto a junio de 2025</div>
+
+    <div class="tablewrap">
+      <div class="rows" id="rows"></div>
+      <div class="noresults" id="noresults">No se encontraron resultados con ese criterio.</div>
+    </div>
+
+    <div class="info-ref" id="infoRef">
+      Fuente: DANE - EMMET. P: cifras provisionales. La diferencia en la suma se da por aproximaciones decimales.
+    </div>
+  </div>
+</div>
+
+<script>
+var datasets={
+  actividades:[
+    {clase:"1100",desc:"Elaboración de bebidas",prod:15.3,vent:15.6,pers:0.2},
+    {clase:"2100",desc:"Fabricación de productos farmacéuticos, sustancias químicas medicinales",prod:8.1,vent:6.9,pers:-0.1},
+    {clase:"2023",desc:"Fabricación de jabones y detergentes, perfumes y preparados de tocador",prod:5.3,vent:5.2,pers:-0.5},
+    {clase:"2220",desc:"Fabricación de productos de plástico",prod:7.5,vent:8.4,pers:1.8},
+    {clase:"3000",desc:"Fabricación de otros tipos de equipo de transporte",prod:22.0,vent:17.6,pers:21.7},
+    {clase:"1040",desc:"Elaboración de productos lácteos",prod:7.5,vent:4.4,pers:-2.3},
+    {clase:"2410",desc:"Industrias básicas de hierro y de acero",prod:8.2,vent:-5.7,pers:-2.5},
+    {clase:"1090",desc:"Elaboración de alimentos preparados para animales",prod:9.2,vent:8.1,pers:3.4},
+    {clase:"2700",desc:"Fabricación de aparatos y equipo eléctrico",prod:7.0,vent:-1.6,pers:1.0},
+    {clase:"1900",desc:"Coquización, refinación de petróleo, y mezcla de combustibles",prod:2.7,vent:5.5,pers:-4.1},
+    {clase:"2500",desc:"Fabricación de productos elaborados de metal",prod:8.4,vent:10.7,pers:2.5},
+    {clase:"2390",desc:"Fabricación de productos minerales no metálicos n.c.p.",prod:3.4,vent:6.6,pers:-2.0},
+    {clase:"3100",desc:"Fabricación de muebles, colchones y somieres",prod:10.8,vent:8.2,pers:5.4},
+    {clase:"1030",desc:"Elaboración de aceites y grasas de origen vegetal y animal",prod:6.1,vent:-2.0,pers:-3.0},
+    {clase:"2910",desc:"Fabricación de vehículos automotores y sus motores",prod:16.5,vent:0.9,pers:3.6},
+    {clase:"1050",desc:"Elaboración de productos de molinería, almidones y sus derivados",prod:3.6,vent:0.3,pers:1.1},
+    {clase:"2010",desc:"Fabricación de sustancias químicas básicas, y sus productos",prod:2.2,vent:-5.3,pers:-2.0},
+    {clase:"1070",desc:"Elaboración de azúcar y panela",prod:2.9,vent:17.4,pers:-12.0},
+    {clase:"3200",desc:"Otras industrias manufactureras",prod:2.6,vent:2.0,pers:-4.0},
+    {clase:"2930",desc:"Fabricación de partes, piezas (autopartes) y accesorios para vehículos",prod:14.6,vent:10.9,pers:2.7},
+    {clase:"2920",desc:"Fabricación de carrocerías para vehículos automotores, remolques",prod:19.2,vent:27.9,pers:29.5},
+    {clase:"1520",desc:"Fabricación de calzado",prod:5.5,vent:-2.5,pers:-5.4},
+    {clase:"2800",desc:"Fabricación de maquinaria y equipo n.c.p.",prod:2.3,vent:4.5,pers:-2.7},
+    {clase:"1512",desc:"Fabricación de artículos de viaje, bolsos de mano y similares en cuero",prod:16.2,vent:-14.1,pers:3.6},
+    {clase:"1511",desc:"Curtido y recurtido de cueros; recurtido y teñido de pieles",prod:-10.3,vent:-8.0,pers:-8.0},
+    {clase:"2420",desc:"Industrias básicas de metales preciosos y no ferrosos",prod:-10.9,vent:-5.4,pers:-6.0},
+    {clase:"1010",desc:"Procesamiento y conservación de carne, pescado, crustáceos y moluscos",prod:-0.6,vent:0.3,pers:2.4},
+    {clase:"1800",desc:"Actividades de impresión",prod:-1.5,vent:-5.1,pers:-4.7},
+    {clase:"1061",desc:"Trilla de café",prod:-6.3,vent:13.1,pers:-0.1},
+    {clase:"1081",desc:"Elaboración de productos de panadería",prod:-1.2,vent:-2.6,pers:-2.4},
+    {clase:"2210",desc:"Fabricación de productos de caucho",prod:-29.8,vent:-22.2,pers:-6.6},
+    {clase:"1600",desc:"Transformación de la madera y sus productos",prod:-11.5,vent:1.1,pers:-0.5},
+    {clase:"1700",desc:"Fabricación de papel, cartón, y sus productos",prod:-1.4,vent:-4.7,pers:-3.0},
+    {clase:"1300",desc:"Hilatura, tejeduría y acabado de productos textiles",prod:-4.1,vent:-6.2,pers:-7.2},
+    {clase:"1089",desc:"Elaboración de otros productos alimenticios n.c.p.",prod:-1.7,vent:2.5,pers:-1.4},
+    {clase:"1400",desc:"Confección de prendas de vestir",prod:-2.3,vent:-1.1,pers:-9.8},
+    {clase:"2310",desc:"Fabricación de vidrio y productos de vidrio",prod:-5.3,vent:2.9,pers:-6.8},
+    {clase:"1082",desc:"Elaboración de cacao, chocolate y prod de confitería",prod:-15.4,vent:-11.4,pers:2.2},
+    {clase:"2020",desc:"Fabricación de otros productos químicos",prod:-8.8,vent:-6.7,pers:0.9}
+  ],
+  departamentos:[
+    {clase:"",desc:"Cundinamarca",prod:6.8,vent:7.9,pers:0.4},
+    {clase:"",desc:"Valle del Cauca",prod:4.7,vent:5.7,pers:-1.5},
+    {clase:"",desc:"Antioquia",prod:2.9,vent:1.9,pers:-0.7},
+    {clase:"",desc:"Bogotá, D.C",prod:3.5,vent:2.8,pers:-2.2},
+    {clase:"",desc:"Santander",prod:7.9,vent:10.1,pers:2.1},
+    {clase:"",desc:"Boyacá",prod:11.2,vent:10.0,pers:-1.6},
+    {clase:"",desc:"Otros Departamentos*",prod:6.1,vent:1.8,pers:1.1},
+    {clase:"",desc:"Bolívar",prod:2.2,vent:-0.6,pers:0.3},
+    {clase:"",desc:"Risaralda",prod:4.6,vent:1.6,pers:0.6},
+    {clase:"",desc:"Atlántico",prod:0.9,vent:3.3,pers:-5.3},
+    {clase:"",desc:"Cauca",prod:2.1,vent:2.3,pers:-3.8},
+    {clase:"",desc:"Caldas",prod:1.6,vent:4.1,pers:3.7},
+    {clase:"",desc:"Córdoba",prod:-7.0,vent:-25.0,pers:-1.5},
+    {clase:"",desc:"Tolima",prod:-6.3,vent:-3.5,pers:-2.8}
+  ]
+};
+
+var titles={
+  actividades:"Producción, ventas y empleo por actividad manufacturera",
+  departamentos:"Producción, ventas y empleo por departamento"
+};
+
+var placeholders={
+  actividades:"Buscar actividad manufacturera...",
+  departamentos:"Buscar departamento..."
+};
+
+var infoRefs={
+  actividades:"Fuente: DANE - EMMET. P: cifras provisionales. La diferencia en la suma se da por aproximaciones decimales.",
+  departamentos:"Fuente: DANE - EMMET. P: cifras provisionales. La diferencia en la suma se da por aproximaciones decimales. * Otros departamentos: Amazonas, Arauca, Caquetá, Casanare, Cesar, Chocó, Huila, La Guajira, Magdalena, Meta, Nariño, Norte de Santander, Putumayo, Quindío, San Andrés, Sucre."
+};
+
+var metricInfo={
+  prod:{label:'producción real',color:'#d6336c'},
+  vent:{label:'ventas reales',color:'#2b6fae'},
+  pers:{label:'personal ocupado',color:'#74b816'}
+};
+
+var currentView='actividades';
+var currentMetric='prod';
+var order='desc';
+
+function fmtPct(n){
+  var sign=n>0?'+':'';
+  return sign+n.toLocaleString('es-CO',{minimumFractionDigits:1,maximumFractionDigits:1})+' %';
+}
+
+function setView(v){
+  currentView=v;
+  document.getElementById('vtabActividades').className='vtab'+(v==='actividades'?' active':'');
+  document.getElementById('vtabDepartamentos').className='vtab'+(v==='departamentos'?' active':'');
+  document.getElementById('titleMain').textContent=titles[v];
+  document.getElementById('search').placeholder=placeholders[v];
+  document.getElementById('infoRef').textContent=infoRefs[v];
+  document.getElementById('search').value='';
+  render();
+}
+
+function setMetric(m){
+  currentMetric=m;
+  document.querySelectorAll('.mtab').forEach(function(el){
+    el.classList.toggle('active',el.getAttribute('data-metric')===m);
+  });
+  document.getElementById('subtitleMetric').textContent=metricInfo[m].label;
+  render();
+}
+
+function toggleOrder(){
+  order=order==='desc'?'asc':'desc';
+  document.getElementById('orderbtn').firstChild.textContent=order==='desc'?'Mayor a menor ':'Menor a mayor ';
+  document.getElementById('orderArrow').textContent=order==='desc'?'▼':'▲';
+  render();
+}
+
+function render(){
+  var data=datasets[currentView];
+  var q=document.getElementById('search').value.trim().toLowerCase();
+  var sorted=data.slice();
+  sorted.sort(function(a,b){
+    return order==='desc'?b[currentMetric]-a[currentMetric]:a[currentMetric]-b[currentMetric];
+  });
+
+  var maxAbs=Math.max.apply(null,data.map(function(d){return Math.abs(d[currentMetric])}));
+  var color=metricInfo[currentMetric].color;
+
+  var rowsEl=document.getElementById('rows');
+  rowsEl.innerHTML='';
+  var visibleCount=0;
+
+  sorted.forEach(function(d){
+    var text=(d.desc+' '+d.clase).toLowerCase();
+    var matches=text.indexOf(q)!==-1;
+    var val=d[currentMetric];
+    var widthPct=(Math.abs(val)/maxAbs*100).toFixed(1);
+    var barStyle= val>=0
+      ? 'left:50%;width:'+(widthPct/2)+'%;background:'+color+';'
+      : 'right:50%;width:'+(widthPct/2)+'%;background:'+color+';opacity:.55;';
+
+    var claseHtml=d.clase?'<span class="clase">'+d.clase+'</span>':'';
+    var div=document.createElement('div');
+    div.className='row'+(matches?'':' hidden');
+    div.innerHTML=
+      '<div class="cell-desc">'+claseHtml+d.desc+'</div>'+
+      '<div class="cell-val"><div class="valwrap">'+
+        '<div class="valnum '+(val>=0?'pos':'neg')+'">'+fmtPct(val)+'</div>'+
+        '<div class="barbg"><div class="barfill" style="'+barStyle+'"></div></div>'+
+      '</div></div>';
+    rowsEl.appendChild(div);
+    if(matches) visibleCount++;
+  });
+
+  document.getElementById('noresults').className=visibleCount===0?'noresults show':'noresults';
+}
+
+document.getElementById('search').addEventListener('input',render);
+setView('actividades');
+setMetric('prod');
+</script>
+</body>
+</html>
